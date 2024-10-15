@@ -1,5 +1,6 @@
 const fs = require('fs');
 const express = require('express');
+const { create } = require('domain');
 const app = express();
 //middleware
 app.use(express.json());
@@ -17,7 +18,7 @@ const tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`) //tours-simple.json file accessed here
 );
 
-app.get('/api/v1/tours', (req, res) => {
+const getAllTours = (req, res) => {
   res.status(200).json({
     //jsend format used below
     status: 'success',
@@ -26,28 +27,9 @@ app.get('/api/v1/tours', (req, res) => {
       tours: tours, //2nd tours is json.parsed file above, 1st tours is from url /api/v1/tours
     },
   });
-});
+};
 
-app.post('/api/v1/tours', (req, res) => {
-  const newId = tours[tours.length - 1].id + 1;
-  const newTour = Object.assign({ id: newId }, req.body);
-
-  tours.push(newTour);
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    JSON.stringify(tours),
-    (err) => {
-      res.status(201).json({
-        status: 'success',
-        data: {
-          tour: newTour,
-        },
-      });
-    }
-  );
-});
-
-app.get('/api/v1/tours/:id', (req, res) => {
+const getTour = (req, res) => {
   //console.log(req.params);
   const id = req.params.id * 1; //convert string to number by multiplying with 1
   //console.log(id);
@@ -67,9 +49,28 @@ app.get('/api/v1/tours/:id', (req, res) => {
       tours: tour,
     },
   });
-});
+};
 
-app.patch('/api/v1/tours/:id', (req, res) => {
+const createTour = (req, res) => {
+  const newId = tours[tours.length - 1].id + 1;
+  const newTour = Object.assign({ id: newId }, req.body);
+
+  tours.push(newTour);
+  fs.writeFile(
+    `${__dirname}/dev-data/data/tours-simple.json`,
+    JSON.stringify(tours),
+    (err) => {
+      res.status(201).json({
+        status: 'success',
+        data: {
+          tour: newTour,
+        },
+      });
+    }
+  );
+};
+
+const updateTour = (req, res) => {
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({
       status: 'fail',
@@ -83,9 +84,9 @@ app.patch('/api/v1/tours/:id', (req, res) => {
       tour: '<Placeholder data>',
     },
   });
-});
+};
 
-app.delete('/api/v1/tours/:id', (req, res) => {
+const deleteTour = (req, res) => {
   if (req.params.id * 1 > tours.length) {
     return res.status(404).json({
       status: 'fail',
@@ -97,7 +98,24 @@ app.delete('/api/v1/tours/:id', (req, res) => {
     status: 'success',
     data: null,
   });
-});
+};
+
+/*
+app.get('/api/v1/tours', getAllTours);
+app.get('/api/v1/tours/:id', getTour);
+app.post('/api/v1/tours', createTour);
+app.patch('/api/v1/tours/:id', updateTour);
+app.delete('/api/v1/tours/:id', deleteTour);
+*/
+//^above code has been refactored below so commented out for better understanding
+
+app.route('/api/v1/tours').get(getAllTours).post(createTour);
+
+app
+  .route('/api/v1/tours/:id')
+  .get(getTour)
+  .patch(updateTour)
+  .delete(deleteTour);
 
 const port = 3000;
 app.listen(port, () => {
