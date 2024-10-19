@@ -1,6 +1,6 @@
 const fs = require('fs');
 const express = require('express');
-const { create } = require('domain');
+//const { create } = require('domain'); // what is this??
 const app = express();
 const morgan = require('morgan');
 
@@ -154,17 +154,21 @@ app.delete('/api/v1/tours/:id', deleteTour);
 */
 //^above code has been refactored below so commented out for better understanding
 
-app.route('/api/v1/tours').get(getAllTours).post(createTour);
+//middleware below
+const tourRouter = express.Router();
+const userRouter = express.Router();
 
-app
-  .route('/api/v1/tours/:id')
-  .get(getTour)
-  .patch(updateTour)
-  .delete(deleteTour);
+tourRouter.route('/').get(getAllTours).post(createTour);
 
-app.route('/api/v1/users').get(getAllUsers).post(createUser);
+tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
 
-app.route('/api/v1/user/:id').get(getUser).patch(updateUser).delete(deleteUser);
+userRouter.route('/').get(getAllUsers).post(createUser);
+
+userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
+
+//these come after declaration
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
 
 //4.server start
 const port = 3000;
