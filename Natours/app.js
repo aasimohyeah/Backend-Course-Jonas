@@ -1,3 +1,5 @@
+//Everything related to express is in app.js file
+
 const express = require('express');
 //const { create } = require('domain'); // what is this??
 const app = express();
