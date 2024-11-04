@@ -1,5 +1,5 @@
-const fs = require('fs');
 const Tour = require('./../models/tourModel.js');
+const APIFeatures = require('./../utils/apiFeatures');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
@@ -10,8 +10,9 @@ exports.aliasTopTours = (req, res, next) => {
 
 exports.getAllTours = async (req, res) => {
   try {
+    /*
     console.log(req.query); // shows all parameters included in the URL
-
+    
     //BUILD QUERY
     //1A. FILTERING
     const queryObj = { ...req.query }; // ... splits all parameters in the url, {} makes them in an obj
@@ -23,12 +24,12 @@ exports.getAllTours = async (req, res) => {
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`); // regex used here
 
     let query = Tour.find(JSON.parse(queryStr));
-    /*
-    const tours = await Tour.find({
-      duration: 5,
-      difficulty: 'easy',
-    });*/
-
+    
+    // const tours = await Tour.find({
+    //   duration: 5,
+    //   difficulty: 'easy',
+    // });
+    
     //2. SORTING
     //we are checking below if sort parameter exists in req.query
     if (req.query.sort) {
@@ -38,7 +39,7 @@ exports.getAllTours = async (req, res) => {
       //this block is executed if there is no sort parameters in url
       query = query.sort('-createdAt'); // sorted acc to 'createdAt' field in the db
     }
-
+    
     //3. FIELD LIMITING
     //field limiting is used to hide/prevent certain fields from being sent to user
     if (req.query.fields) {
@@ -47,7 +48,6 @@ exports.getAllTours = async (req, res) => {
     } else {
       query = query.select('-__v');
     }
-
     //4. PAGINATION
     const page = req.query.page * 1 || 1; // *1 to convert string to int, || define limit
     const limit = req.query.limit * 1 || 100; // *1 to convert string to int, || define limit
@@ -58,10 +58,15 @@ exports.getAllTours = async (req, res) => {
     if (req.query.page) {
       const numTours = await Tour.countDocuments();
       if (skip >= numTours) throw new Error('This page does not exist');
-    }
+    }*/
 
     //EXECUTE QUERY
-    const tours = await query;
+    const features = new APIFeatures(Tour.find(), req.query)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+    const tours = await features.query;
 
     //SEND RESPONSE
     res.status(200).json({
@@ -148,6 +153,16 @@ exports.deleteTour = async (req, res) => {
       status: 'success',
       data: null,
     });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+exports.getTourStats = async (req, res) => {
+  try {
   } catch (err) {
     res.status(404).json({
       status: 'fail',
