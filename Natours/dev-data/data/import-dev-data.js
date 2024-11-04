@@ -50,6 +50,7 @@ const deleteData = async () => {
 
 //Test the line below to understand process.argv
 //console.log(process.argv);
+//'node dev-data/data/import-dev-data.js --import' or '--delete' was run as command in console
 if (process.argv[2] === '--import') {
   importData();
 } else if (process.argv[2] === '--delete') {
