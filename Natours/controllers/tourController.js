@@ -1,26 +1,64 @@
 const fs = require('fs');
 const Tour = require('./../models/tourModel.js');
 
+exports.aliasTopTours = (req, res, next) => {
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
-    console.log(req.query);
+    console.log(req.query); // shows all parameters included in the URL
 
     //BUILD QUERY
-    //1. FILTERING
+    //1A. FILTERING
     const queryObj = { ...req.query }; // ... splits all parameters in the url, {} makes them in an obj
     const excludedFields = ['page', 'sort', 'limit', 'fields'];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    //2. ADVANCED FILTERING
+    //1B. ADVANCED FILTERING
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`); // regex used here
 
-    const query = Tour.find(JSON.parse(queryStr));
+    let query = Tour.find(JSON.parse(queryStr));
     /*
     const tours = await Tour.find({
       duration: 5,
       difficulty: 'easy',
     });*/
+
+    //2. SORTING
+    //we are checking below if sort parameter exists in req.query
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(',').join(' '); //split using ',' join back using ' '
+      query = query.sort(sortBy);
+    } else {
+      //this block is executed if there is no sort parameters in url
+      query = query.sort('-createdAt'); // sorted acc to 'createdAt' field in the db
+    }
+
+    //3. FIELD LIMITING
+    //field limiting is used to hide/prevent certain fields from being sent to user
+    if (req.query.fields) {
+      const fields = req.query.fields.split(',').join(' ');
+      query = query.select(fields);
+    } else {
+      query = query.select('-__v');
+    }
+
+    //4. PAGINATION
+    const page = req.query.page * 1 || 1; // *1 to convert string to int, || define limit
+    const limit = req.query.limit * 1 || 100; // *1 to convert string to int, || define limit
+    const skip = (page - 1) * limit;
+
+    query = query.skip(skip).limit(limit);
+
+    if (req.query.page) {
+      const numTours = await Tour.countDocuments();
+      if (skip >= numTours) throw new Error('This page does not exist');
+    }
 
     //EXECUTE QUERY
     const tours = await query;
