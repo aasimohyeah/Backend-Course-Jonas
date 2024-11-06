@@ -1,14 +1,19 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+//Custom Validator package(from npm) for String manipulation below
+const validator = require('validator');
 
 // Mongoose Schema (its like a blueprint/class for the model)
 const tourSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, 'Error: Missing name'],
+      required: [true, 'Error: Missing name'], //this is a Validator
       unique: true, //instruction for name string to be unique
       trim: true,
+      maxlength: [40, 'Name should be less than 40 chars'],
+      minlength: [10, 'Name should be more than 40 chars'],
+      //validate: [validator.isAlpha, 'Tour name must only contain characters'],
     },
     slug: String,
     duration: {
@@ -22,10 +27,17 @@ const tourSchema = new mongoose.Schema(
     difficulty: {
       type: String,
       required: [true, 'Error: Specify difficulty'],
+      enum: {
+        //enum means only given types of values allowed in difficulty
+        values: ['easy', 'medium', 'difficult'],
+        message: 'easy, medium, hard only',
+      },
     },
     ratingsAverage: {
       type: Number,
       default: 4.5, //default value
+      min: [1, 'Rating should be above 1.0'],
+      max: [5, 'Rating should be below 5.0'],
     },
     ratingsQuantity: {
       type: Number,
@@ -35,7 +47,18 @@ const tourSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Error: Missing price'],
     },
-    priceDiscount: Number,
+    priceDiscount: {
+      type: Number,
+      //Custom Validator
+      validate: {
+        validator: function (val) {
+          //If a new doc is created/current doc is updated,
+          //this will still point to original doc and not new one
+          return val < this.price;
+        },
+        message: 'Discount price {VALUE} should be less than regular price',
+      },
+    },
     summary: {
       type: String,
       trim: true, //for whitespace trim
@@ -67,6 +90,7 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
+//Virtual Property(i.e schema property that user can define)
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
@@ -82,7 +106,7 @@ tourSchema.pre('save', (next) => {
   //console.log('Will save document');
   next();
 });
-//pre document middleware: it runs after .save() & .create()
+//post document middleware: it runs after .save() & .create()
 tourSchema.post('save', (doc, next) => {
   //console.log(doc);
   next();
@@ -90,14 +114,15 @@ tourSchema.post('save', (doc, next) => {
 
 //2.QUERY MIDDLEWARE
 //pre middleware
-//tourSchema.pre('find', (next) => {
+//tourSchema.pre('find', (next) => { <- Normal non regex syntax
+
+//Below we use normal function instead of arrow becuase this keyword dont work with arrow
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
 
   this.start = Date.now();
   next();
 });
-//post middleware
 tourSchema.pre(/^find/, (docs, next) => {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
 });
