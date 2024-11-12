@@ -118,17 +118,19 @@ tourSchema.post('save', (doc, next) => {
 
 //Below we use normal function instead of arrow becuase this keyword dont work with arrow
 tourSchema.pre(/^find/, function (next) {
+  //used regex above so that all commands with 'find' in the name are detected
   this.find({ secretTour: { $ne: true } });
 
   this.start = Date.now();
   next();
 });
-tourSchema.pre(/^find/, (docs, next) => {
+tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
+  next();
 });
 
 //3.AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', (next) => {
+tourSchema.pre('aggregate', function (next) {
   //inserting a $match condition at top of pipeline using unshift
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();

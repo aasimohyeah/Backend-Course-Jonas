@@ -170,7 +170,7 @@ exports.getTourStats = async (req, res) => {
       },
       {
         $group: {
-          _id: '$difficulty', //to sort below values acc to difficulty
+          _id: { $toUpper: '$difficulty' }, //to sort below values acc to difficulty
           numTours: { $sum: 1 }, //increment by 1 for every entry that go through pipeline
           numRatings: { $sum: '$ratingsQuantity' },
           avgRating: { $avg: '$ratingsAverage' },
