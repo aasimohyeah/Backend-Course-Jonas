@@ -253,3 +253,6 @@ exports.getMonthlyPlan = async (req, res) => {
     });
   }
 };
+
+// export.<fn_name> is used because multiple functions are being exported
+// module.exports is used when only one function is exported

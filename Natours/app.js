@@ -1,10 +1,11 @@
 //Everything related to express is in app.js file
-
 const express = require('express');
-//const { create } = require('domain'); // what is this??
+
 const app = express();
 const morgan = require('morgan');
 
+const AppError = require('./utils/appError.js');
+const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require('./routes/tourRoutes.js');
 const userRouter = require('./routes/userRoutes.js');
 
@@ -33,6 +34,18 @@ app.post('/', (req, res) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+//handling unhandled/undefined routes
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //   status: 'fail',
+  //   message: `Can't find ${req.originalUrl} on this server!`,
+  // });
+  next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
+});
+
+//Global error handling middleware
+app.use(globalErrorHandler);
 
 module.exports = app;
 
