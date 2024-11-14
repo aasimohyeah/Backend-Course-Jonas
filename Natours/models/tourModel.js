@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 //Custom Validator package(from npm) for String manipulation below
-const validator = require('validator');
+const validator = require('validator'); // no use of this here
 
 // Mongoose Schema (its like a blueprint/class for the model)
 const tourSchema = new mongoose.Schema(
@@ -137,6 +137,7 @@ tourSchema.pre('aggregate', function (next) {
 });
 
 // Mongoose model
+// Mongoose models have a convention to have name with first letter as capital
 const Tour = mongoose.model('Tour', tourSchema);
 
 /*
