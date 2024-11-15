@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Enter a password!'],
     minlength: 8,
+    select: false,
   },
   passwordConfirm: {
     type: String,
@@ -47,6 +48,15 @@ userSchema.pre('save', async function (next) {
   //set to undefined is a hacky way of hiding the passwordConfirm in the db entry
   this.passwordConfirm = undefined;
 });
+
+//INSTANCE METHOD- a method that is available in all documents of a certain collection
+//below function is comparing encrypted and normal password
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword,
+) {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
 
 // Mongoose models have a convention to have name with first letter as capital
 const User = mongoose.model('User', userSchema);

@@ -58,6 +58,7 @@ module.exports = (err, req, res, next) => {
     //console.log('production yes');
     let error = { ...err }; //... means node destructuring: i.e unpacking all values in an array
     //console.log('YYY', error);
+
     //Handling some errors below which have defined names. eg:CastError
     if (err.name === 'CastError') {
       error = handleCastErrorDB(error);
