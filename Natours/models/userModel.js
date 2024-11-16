@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema({
     },
     message: 'Passwords are not the same!',
   },
+  passwordChangedAt: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -50,12 +51,26 @@ userSchema.pre('save', async function (next) {
 });
 
 //INSTANCE METHOD- a method that is available in all documents of a certain collection
+//document- instance of a schema
 //below function is comparing encrypted and normal password
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword,
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    //divided by 1000 to change millisecond to second
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10,
+    );
+
+    return JWTTimestamp < changedTimeStamp;
+  }
+  return false;
 };
 
 // Mongoose models have a convention to have name with first letter as capital

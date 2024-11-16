@@ -1,3 +1,4 @@
+const { promisify } = require('util');
 const jwt = require('jsonwebtoken');
 const User = require('./../models/userModel.js');
 const catchAsync = require('./../utils/catchAsync.js');
@@ -15,6 +16,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     email: req.body.email,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
+    passwordChangedAt: req.body.passwordChangedAt,
   });
 
   //payload,secretKey parameters passed below
@@ -54,4 +56,48 @@ exports.login = catchAsync(async (req, res, next) => {
     status: 'success',
     token,
   });
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  //1. Getting token and check if it exists
+  let token;
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    //Authorization is name(key value) of the header
+    //'Bearer' is written before any headers in the url as a convention
+    token = req.headers.authorization.split(' ')[1];
+    //^getting the text after Bearer in the header value
+  }
+
+  if (!token) {
+    return next(
+      new AppError('You are not logged in! Please log in to get access', 401),
+    );
+  }
+
+  //2. Verification of JWT token
+
+  //Promisification is the process of converting a function that uses callbacks
+  //into a function that returns a promise.
+  //jwt.verify is a fn but is being promsified so it is in brackets before fn parameters
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  //3. Check if user still exists
+  const currentUser = await User.findById(decoded.id);
+  if (!currentUser) {
+    return next(new AppError('User belonging to token no longer exists', 401));
+  }
+
+  //4. Check if user changed password after JWT token was issued
+  if (currentUser.changedPasswordAfter(decoded.iat)) {
+    return next(
+      new AppError('User recently changed password! Please log in again', 401),
+    );
+  }
+
+  //GRANT ACCESS TO PROTECTED ROUTE
+  req.user = currentUser;
+  next();
 });
