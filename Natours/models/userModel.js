@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
@@ -42,6 +43,8 @@ const userSchema = new mongoose.Schema({
     message: 'Passwords are not the same!',
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  paswordResetExpires: Date,
 });
 
 userSchema.pre('save', async function (next) {
@@ -55,6 +58,13 @@ userSchema.pre('save', async function (next) {
 
   //set to undefined is a hacky way of hiding the passwordConfirm in the db entry
   this.passwordConfirm = undefined;
+});
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+
+  this.passwordChangedAt = Date.now() - 1 * 1000; //1 sec
+  next();
 });
 
 //INSTANCE METHOD- a method that is available in all documents of a certain collection
@@ -78,6 +88,24 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
     return JWTTimestamp < changedTimeStamp;
   }
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  //resetToken is unencrypted string, passwordResetToken is
+  //encrypted string which then gets stored in the db
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  console.log({ resetToken }, this.passwordResetToken);
+
+  this.paswordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 // Mongoose models have a convention to have name with first letter as capital
