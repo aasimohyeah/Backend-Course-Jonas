@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
   photo: {
     type: String,
   },
+  role: {
+    type: String,
+    enum: ['user', 'guide', 'lead-guide', 'admin'],
+    //enum means list of accepted values
+    default: 'user',
+  },
   password: {
     type: String,
     required: [true, 'Enter a password!'],
@@ -28,6 +34,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Confirm your password!'],
     validate: {
       //This only works with create() and save()
+      //Below function is called each time a new document is created
       validator: function (el) {
         return el === this.password;
       },
@@ -67,7 +74,7 @@ userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
       this.passwordChangedAt.getTime() / 1000,
       10,
     );
-
+    //console.log(JWTTimestamp, changedTimeStamp);
     return JWTTimestamp < changedTimeStamp;
   }
   return false;
