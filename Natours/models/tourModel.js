@@ -6,6 +6,7 @@ const validator = require('validator'); // no use of this here
 // Mongoose Schema (its like a blueprint/class for the model)
 const tourSchema = new mongoose.Schema(
   {
+    //1.SCHEMA DEFINITION
     name: {
       type: String,
       required: [true, 'Error: Missing name'], //this is a Validator
@@ -83,9 +84,37 @@ const tourSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    //Geospatial data (GeoJSON format)
+    //EMBEDDED DOCUMENT
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Number,
+      },
+    ],
   },
+  //2.SCHEMA OPTIONS
   {
+    //when result of schema get outputted as json, set virtual property to true
     toJSON: { virtuals: true },
+    //when result of schema get outputted as Object, set virtual property to true
     toObject: { virtuals: true },
   },
 );
