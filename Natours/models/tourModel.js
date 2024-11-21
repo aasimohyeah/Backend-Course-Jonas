@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel.js');
 //Custom Validator package(from npm) for String manipulation below
 const validator = require('validator'); // no use of this here
 
@@ -109,6 +110,16 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    //for EMBEDDING
+    //guides: Array,
+
+    //for REFERENCING
+    guides: [
+      {
+        type: mongoose.Schema.ObjectId, //means data type is mongodb id's
+        ref: 'User', //referencing User model here
+      },
+    ],
   },
   //2.SCHEMA OPTIONS
   {
@@ -131,6 +142,16 @@ tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();
 });
+
+//CODE FOR EMBEDDING guides DATA into SCHEMA
+/*
+tourSchema.pre('save', async function (next) {
+  //promises being returned in below line
+  const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+  this.guides = await Promise.all(guidesPromises);
+  next();
+});*/
+
 tourSchema.pre('save', (next) => {
   //console.log('Will save document');
   next();

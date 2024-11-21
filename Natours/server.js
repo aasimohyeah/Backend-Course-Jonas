@@ -2,7 +2,7 @@
 //Everything related to server is in server.js file
 
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const dotenv = require('dotenv'); //for loading variables from .env file
 
 process.on('uncaughtException', (err) => {
   console.log('UNCAUGHT EXCEPTION. Shutting down application...');

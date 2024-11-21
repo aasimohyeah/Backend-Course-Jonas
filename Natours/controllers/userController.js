@@ -58,6 +58,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   });
 });
 
+//This function does not delete entry from the db, it only hides it by setting active
+//to false, which gets checked beforehand by find middleware (.pre)
 exports.deleteMe = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.user.id, { active: false });
 

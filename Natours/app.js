@@ -2,7 +2,11 @@
 const express = require('express');
 
 const app = express();
-const morgan = require('morgan');
+
+//morgan returns info regarding the type of request made, error code etc.
+//eg : GET /api/.. 404 500ms
+const morgan = require('morgan'); //http logger midleware
+
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
@@ -21,7 +25,8 @@ app.use(helmet());
 
 //Development logging
 if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+  //returns details about the request; eg : GET /api/.. 404 500ms
+  app.use(morgan('dev')); //'dev' is a predefined parameter for morgan, we didnt set it
 }
 
 //Limit requests from the same API
@@ -78,6 +83,7 @@ app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 
 //handling unhandled/undefined routes
+//app.all is a routing function
 app.all('*', (req, res, next) => {
   // res.status(404).json({
   //   status: 'fail',

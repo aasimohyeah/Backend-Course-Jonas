@@ -1,4 +1,5 @@
 class AppError extends Error {
+  //Constructor is called each time a new object of this class is created
   constructor(message, statusCode) {
     super(message);
 
@@ -8,6 +9,7 @@ class AppError extends Error {
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
 
     this.isOperational = true; //To classify this as an Operational error
+    //All errors will have isOperational property as true
 
     Error.captureStackTrace(this, this.constructor);
   }

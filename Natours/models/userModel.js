@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     minlength: 8,
     select: false,
   },
+  //For my reference Password
+  passwordOG: {
+    type: String,
+  },
   passwordConfirm: {
     type: String,
     required: [true, 'Confirm your password!'],
@@ -57,6 +61,10 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
+
+  //For my reference
+  // console.log('X ', this.password);
+  this.passwordOG = this.password;
 
   //Hash the password with cost of 12
   this.password = await bcrypt.hash(this.password, 12);

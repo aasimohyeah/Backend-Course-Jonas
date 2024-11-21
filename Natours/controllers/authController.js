@@ -6,11 +6,7 @@ const catchAsync = require('./../utils/catchAsync.js');
 const AppError = require('./../utils/appError.js');
 const sendEmail = require('./../utils/email.js');
 
-// const signToken = (id) => {
-//   return jwt.sign({ id: id }, process.env.JWT_SECRET, {
-//     expiresIn: process.env.JWT_EXPIRES_IN,
-//   });
-// };
+//Returns the JsonWebToken as a String
 const signToken = (id) =>
   jwt.sign({ id: id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -19,6 +15,7 @@ const signToken = (id) =>
 const createSendToken = (user, statusCode, res) => {
   const token = signToken(user._id);
 
+  //Cookie
   const cookieOptions = {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
