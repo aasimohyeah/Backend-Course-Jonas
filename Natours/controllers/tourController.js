@@ -87,7 +87,10 @@ exports.getTour = catchAsync(async (req, res, next) => {
   console.log(id);
   const tour = tours.find((el) => el.id === id);*/
 
-  const tour = await Tour.findById(req.params.id);
+  const tour = await Tour.findById(req.params.id).populate('reviews');
+  //(NEWER)^.populate('reviews') for virtual populate
+  //^ .populate('guides') was added above to fill data in REFERENCED field
+  //^ moved to tourModel in a pre middleware
 
   if (!tour) {
     return next(new AppError('No tour find with that ID', 404));

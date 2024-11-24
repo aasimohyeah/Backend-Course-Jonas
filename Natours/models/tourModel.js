@@ -135,6 +135,14 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+//Virtual POPULATE
+tourSchema.virtual('reviews', {
+  ref: 'Review', //name of model to be referenced
+  foreignField: 'tour', //name of the field in the other model(Review)
+  //where reference to current model(Tour) is stored
+  localField: '_id', //name of field which we need from this current model
+});
+
 //Mongoose middlewares->
 //1.DOCUMENT MIDDLEWARE (used for data manipulation)
 //pre document middleware: it runs before .save() & .create()
@@ -168,12 +176,23 @@ tourSchema.post('save', (doc, next) => {
 
 //Below we use normal function instead of arrow becuase this keyword dont work with arrow
 tourSchema.pre(/^find/, function (next) {
-  //^find regex above so that all commands with 'find' in the name are detected
+  //^find regex used above, so that all functions/commands with 'find' in the name are detected
   this.find({ secretTour: { $ne: true } });
 
   this.start = Date.now();
   next();
 });
+
+tourSchema.pre(/^find/, function (next) {
+  //^regex for all functions/commands with find in the name
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt', //dont show these in the entry
+  });
+  //^ .populate('guides') was added above to fill data in REFERENCED field
+  next();
+});
+
 tourSchema.post(/^find/, function (docs, next) {
   console.log(`Query took ${Date.now() - this.start} milliseconds`);
   next();

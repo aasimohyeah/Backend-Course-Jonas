@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
   //For my reference Password
   passwordOG: {
     type: String,
+    select: false,
   },
   passwordConfirm: {
     type: String,

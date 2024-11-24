@@ -17,6 +17,7 @@ const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require('./routes/tourRoutes.js');
 const userRouter = require('./routes/userRoutes.js');
+const reviewRouter = require('./routes/reviewRoutes');
 
 //1.global middlewares
 
@@ -81,6 +82,7 @@ app.post('/', (req, res) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews', reviewRouter);
 
 //handling unhandled/undefined routes
 //app.all is a routing function
