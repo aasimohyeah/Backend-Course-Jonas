@@ -1,7 +1,7 @@
-const Tour = require('./../models/tourModel.js');
-const APIFeatures = require('./../utils/apiFeatures');
-const catchAsync = require('./../utils/catchAsync.js');
-const AppError = require('./../utils/appError.js');
+const Tour = require('../models/tourModel');
+const catchAsync = require('../utils/catchAsync');
+// const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 exports.aliasTopTours = (req, res, next) => {
   req.query.limit = '5';
@@ -10,151 +10,103 @@ exports.aliasTopTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  /*
-    console.log(req.query); // shows all parameters included in the URL
-    
-    //BUILD QUERY
-    //1A. FILTERING
-    const queryObj = { ...req.query }; // ... splits all parameters in the url, {} makes them in an obj
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
-    excludedFields.forEach((el) => delete queryObj[el]);
+exports.getAllTours = factory.getAll(Tour);
 
-    //1B. ADVANCED FILTERING
-    let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`); // regex used here
+// exports.getAllTours = catchAsync(async (req, res, next) => {
+//   //EXECUTE QUERY
+//   const features = new APIFeatures(Tour.find(), req.query)
+//     .filter()
+//     .sort()
+//     .limitFields()
+//     .paginate();
+//   const tours = await features.query;
 
-    let query = Tour.find(JSON.parse(queryStr));
-    
-    // const tours = await Tour.find({
-    //   duration: 5,
-    //   difficulty: 'easy',
-    // });
-    
-    //2. SORTING
-    //we are checking below if sort parameter exists in req.query
-    if (req.query.sort) {
-      const sortBy = req.query.sort.split(',').join(' '); //split using ',' join back using ' '
-      query = query.sort(sortBy);
-    } else {
-      //this block is executed if there is no sort parameters in url
-      query = query.sort('-createdAt'); // sorted acc to 'createdAt' field in the db
-    }
-    
-    //3. FIELD LIMITING
-    //field limiting is used to hide/prevent certain fields from being sent to user
-    if (req.query.fields) {
-      const fields = req.query.fields.split(',').join(' ');
-      query = query.select(fields);
-    } else {
-      query = query.select('-__v');
-    }
-    //4. PAGINATION
-    const page = req.query.page * 1 || 1; // *1 to convert string to int, || define limit
-    const limit = req.query.limit * 1 || 100; // *1 to convert string to int, || define limit
-    const skip = (page - 1) * limit;
+//   //SEND RESPONSE
+//   res.status(200).json({
+//     //jsend format used below
+//     status: 'success',
+//     results: tours.length, //additional field
+//     data: {
+//       tours: tours, //2nd tours is tours variable above, 1st tours is from url /api/v1/tours
+//     },
+//   });
+// });
 
-    query = query.skip(skip).limit(limit);
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 
-    if (req.query.page) {
-      const numTours = await Tour.countDocuments();
-      if (skip >= numTours) throw new Error('This page does not exist');
-    }*/
+// exports.getTour = catchAsync(async (req, res, next) => {
+//   /*
+//   console.log(req.params);
+//   const id = req.params.id * 1; //convert string to number by multiplying with 1
+//   console.log(id);
+//   const tour = tours.find((el) => el.id === id);*/
 
-  //EXECUTE QUERY
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-  const tours = await features.query;
+//   const tour = await Tour.findById(req.params.id).populate('reviews');
+//   //(NEWER)^.populate('reviews') for virtual populate
+//   //^ .populate('guides') was added above to fill data in REFERENCED field
+//   //^ moved to tourModel in a pre middleware
 
-  //SEND RESPONSE
-  res.status(200).json({
-    //jsend format used below
-    status: 'success',
-    results: tours.length, //additional field
-    data: {
-      tours: tours, //2nd tours is tours variable above, 1st tours is from url /api/v1/tours
-    },
-  });
-});
+//   if (!tour) {
+//     return next(new AppError('No tour find with that ID', 404));
+//   }
 
-exports.getTour = catchAsync(async (req, res, next) => {
-  /*
-  console.log(req.params);
-  const id = req.params.id * 1; //convert string to number by multiplying with 1
-  console.log(id);
-  const tour = tours.find((el) => el.id === id);*/
-
-  const tour = await Tour.findById(req.params.id).populate('reviews');
-  //(NEWER)^.populate('reviews') for virtual populate
-  //^ .populate('guides') was added above to fill data in REFERENCED field
-  //^ moved to tourModel in a pre middleware
-
-  if (!tour) {
-    return next(new AppError('No tour find with that ID', 404));
-  }
-
-  res.status(200).json({
-    //jsend format used below
-    status: 'success',
-    data: {
-      tours: tour,
-    },
-  });
-});
+//   res.status(200).json({
+//     //jsend format used below
+//     status: 'success',
+//     data: {
+//       tours: tour,
+//     },
+//   });
+// });
 
 //next() is needed below in the parameters, so that error can be sent to the globalErrorHandler using it
-exports.createTour = catchAsync(async (req, res, next) => {
-  const newTour = await Tour.create(req.body); //req.body will contain data that came as response from the post request
+// exports.createTour = catchAsync(async (req, res, next) => {
+//   const newTour = await Tour.create(req.body); //req.body will contain data that came as response from the post request
 
-  res.status(201).json({
-    status: 'success',
-    data: {
-      tour: newTour,
-    },
-  });
+//   res.status(201).json({
+//     status: 'success',
+//     data: {
+//       tour: newTour,
+//     },
+//   });
+// });
 
-  // try {
-  // } catch (err) {
-  //   res.status(400).json({
-  //     status: 'fail',
-  //     message: err,
-  //   });
-  // }
-});
+exports.createTour = factory.createOne(Tour);
 
-exports.updateTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+exports.updateTour = factory.updateOne(Tour);
 
-  if (!tour) {
-    return next(new AppError('No tour find with that ID', 404));
-  }
+// exports.updateTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+//     new: true,
+//     runValidators: true,
+//   });
 
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour: tour, //2nd one is tour variable from above
-    },
-  });
-});
+//   if (!tour) {
+//     return next(new AppError('No tour find with that ID', 404));
+//   }
 
-exports.deleteTour = catchAsync(async (req, res, next) => {
-  const tour = await Tour.findByIdAndDelete(req.params.id);
+//   res.status(200).json({
+//     status: 'success',
+//     data: {
+//       tour: tour, //2nd one is tour variable from above
+//     },
+//   });
+// });
 
-  if (!tour) {
-    return next(new AppError('No tour find with that ID', 404));
-  }
+exports.deleteTour = factory.deleteOne(Tour); //passed the tour model as parameter
 
-  res.status(204).json({
-    status: 'success',
-    data: null,
-  });
-});
+// exports.deleteTour = catchAsync(async (req, res, next) => {
+//   const tour = await Tour.findByIdAndDelete(req.params.id);
+
+//   if (!tour) {
+//     return next(new AppError('No tour find with that ID', 404));
+//   }
+
+//   res.status(204).json({
+//     status: 'success',
+//     data: null,
+//   });
+// });
 
 //MongoDB Aggregation pipelines can be used to get insights from our data, eg: avg, total, max, min etc
 exports.getTourStats = catchAsync(async (req, res, next) => {

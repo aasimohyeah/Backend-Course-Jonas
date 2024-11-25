@@ -1,8 +1,9 @@
 const fs = require('fs');
-const User = require('./../models/userModel.js');
+const User = require('../models/userModel');
 
-const catchAsync = require('./../utils/catchAsync.js');
-const AppError = require('./../utils/appError.js');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const factory = require('./handlerFactory');
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -16,19 +17,26 @@ exports.tours = JSON.parse(
   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`), //tours-simple.json file accessed here
 );
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find();
+exports.getAllUsers = factory.getAll(User);
 
-  //SEND RESPONSE
-  res.status(200).json({
-    //jsend format used below
-    status: 'success',
-    results: users.length, //additional field
-    data: {
-      users: users, //2nd tours is tours variable above, 1st tours is from url /api/v1/tours
-    },
-  });
-});
+// exports.getAllUsers = catchAsync(async (req, res, next) => {
+//   const users = await User.find();
+
+//   //SEND RESPONSE
+//   res.status(200).json({
+//     //jsend format used below
+//     status: 'success',
+//     results: users.length, //additional field
+//     data: {
+//       users: users, //2nd tours is tours variable above, 1st tours is from url /api/v1/tours
+//     },
+//   });
+// });
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
 
 exports.updateMe = catchAsync(async (req, res, next) => {
   //1. Create error if user POSTs password data
@@ -69,30 +77,17 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Route not defined yet',
-  });
-};
+exports.getUser = factory.getOne(User);
 
 exports.createUser = (req, res) => {
   res.status(500).json({
     status: 'error',
-    message: 'Route not defined yet',
+    message: 'Route not defined. Use /signup instead',
   });
 };
 
-exports.updateUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Route not defined yet',
-  });
-};
+//Do not update passwords with .updateUser, because findByIdAndUpdate
+//does not run the middleware
+exports.updateUser = factory.updateOne(User);
 
-exports.deleteUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Route not defined yet',
-  });
-};
+exports.deleteUser = factory.deleteOne(User);
