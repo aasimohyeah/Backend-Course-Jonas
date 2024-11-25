@@ -1,10 +1,14 @@
 const express = require('express');
-const tourController = require('./../controllers/tourController');
-const authController = require('./../controllers/authController.js');
+const tourController = require('../controllers/tourController');
+const authController = require('../controllers/authController');
+const reviewRouter = require('../routes/reviewRoutes');
 
 const router = express.Router();
 
 //router.param('id', tourController.checkID);
+
+// Redirect to reviewRouter when this is the route
+router.use('/:tourId/reviews', reviewRouter); //mounting router like in app.js
 
 router
   .route('/top-5-cheap')
