@@ -130,7 +130,7 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
-//INDEX
+//INDEX SETTING
 //tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
