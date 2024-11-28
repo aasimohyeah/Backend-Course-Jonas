@@ -135,6 +135,8 @@ const tourSchema = new mongoose.Schema(
 //tourSchema.index({ price: 1 });
 tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
+//Geospatial index
+tourSchema.index({ startLocation: '2dsphere' });
 
 //Virtual Property(i.e schema property that user can define)
 tourSchema.virtual('durationWeeks').get(function () {
@@ -205,11 +207,11 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 //3.AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', function (next) {
-  //inserting a $match condition at start of pipeline using unshift
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   //inserting a $match condition at start of pipeline using unshift
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 // Mongoose model
 // Mongoose models have a convention to have name with first letter as capital
