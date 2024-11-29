@@ -1,7 +1,13 @@
 //Everything related to express is in app.js file
+const path = require('path'); //used for manipulating path names
 const express = require('express');
 
 const app = express();
+
+//PUG setup
+//Pug templates are called 'views' in express
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 
 //morgan returns info regarding the type of request made, error code etc.
 //eg : GET /api/.. 404 500ms
@@ -20,6 +26,8 @@ const userRouter = require('./routes/userRoutes.js');
 const reviewRouter = require('./routes/reviewRoutes');
 
 //1.global middlewares
+//Serving static files from public folder
+app.use(express.static(path.join(__dirname, 'public')));
 
 //Set security HTTP headers
 app.use(helmet());
@@ -61,9 +69,6 @@ app.use(
   }),
 );
 
-//Serving static files from public folder
-app.use(express.static(`${__dirname}/public`));
-
 app.use((req, res, next) => {
   console.log('Custom Middleware');
   next();
@@ -79,6 +84,13 @@ app.post('/', (req, res) => {
 */
 
 //2.routes
+//pug
+app.get('/', (req, res) => {
+  res.status(200).render('base', {
+    tour: 'The forest hiker',
+    user: 'Woods',
+  });
+});
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
