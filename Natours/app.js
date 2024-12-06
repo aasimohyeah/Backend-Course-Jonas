@@ -24,6 +24,7 @@ const globalErrorHandler = require('./controllers/errorController.js');
 const tourRouter = require('./routes/tourRoutes.js');
 const userRouter = require('./routes/userRoutes.js');
 const reviewRouter = require('./routes/reviewRoutes');
+const viewRouter = require('./routes/viewRoutes');
 
 //1.global middlewares
 //Serving static files from public folder
@@ -84,13 +85,10 @@ app.post('/', (req, res) => {
 */
 
 //2.routes
-//pug
-app.get('/', (req, res) => {
-  res.status(200).render('base', {
-    tour: 'The forest hiker',
-    user: 'Woods',
-  });
-});
+
+//pug routes
+//shifted to viewRoutes.js
+app.use('/', viewRouter);
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
