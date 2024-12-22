@@ -6,13 +6,18 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
     "start:prod": "set NODE_ENV=production&& nodemon server.js",
-    "debug": "ndb server.js"
+    "debug": "ndb server.js",
+    "watch:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js",
+    "build:js": "parcel watch ./public/js/index.js --out-dir ./public/js --out-file bundle.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-mongo-sanitize": "^2.2.0",
@@ -20,7 +25,7 @@
     "helmet": "^8.0.0",
     "hpp": "^0.2.3",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^5.13.22",
+    "mongoose": "^8.9.1",
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.16",
     "pug": "^3.0.3",
@@ -37,6 +42,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.1",
+    "parcel-bundler": "^1.12.5",
     "prettier": "^3.3.3"
   },
   "engines": {

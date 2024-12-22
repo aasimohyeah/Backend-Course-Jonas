@@ -26,7 +26,7 @@ const createSendToken = (user, statusCode, res) => {
   if (process.env.NODE_ENV === 'production') {
     cookieOptions.secure = true;
   }
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('jwt', token, cookieOptions); //set cookie in browser of name 'jwt'
 
   user.password = undefined; //hiding user password in the db field
 
@@ -65,6 +65,7 @@ exports.login = catchAsync(async (req, res, next) => {
   //2. Check if user exists and password is correct
   const user = await User.findOne({ email: email }).select('+password');
 
+  //.correctPassword is an instance method(check userModel.js)
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect email or password', 401));
   }
@@ -76,6 +77,7 @@ exports.login = catchAsync(async (req, res, next) => {
 exports.protect = catchAsync(async (req, res, next) => {
   //1. Getting token and check if it exists
   let token;
+  //To read token from authorization Header
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -84,6 +86,10 @@ exports.protect = catchAsync(async (req, res, next) => {
     //'Bearer' is written before any headers in the url as a convention
     token = req.headers.authorization.split(' ')[1];
     //^getting the text after Bearer in the header value
+  }
+  //To read token from COOKIE
+  else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
   if (!token) {
@@ -116,6 +122,38 @@ exports.protect = catchAsync(async (req, res, next) => {
 
   //GRANT ACCESS TO PROTECTED ROUTE
   req.user = currentUser;
+  next();
+});
+
+// Only for rendered pages, no errors
+exports.isLoggedIn = catchAsync(async (req, res, next) => {
+  //To read token from authorization Header
+  if (req.cookies.jwt) {
+    //1. Verify Token
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET,
+    );
+
+    //2. Check if user still exists
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return next();
+    }
+
+    //3. Check if user changed password after JWT token was issued
+    //'iat' means issued at
+    if (currentUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+
+    //-Code coming till here means There is a logged in user
+
+    //Every pug template has access to res.locals, user is a variable inside it
+    res.locals.user = currentUser; //A variable named user will be accesible in pug templates
+    return next();
+  }
+  //-Code coming till here means There is NO logged in user
   next();
 });
 

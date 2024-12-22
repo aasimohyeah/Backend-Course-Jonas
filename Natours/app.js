@@ -18,6 +18,8 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+//npm package to grab cookie from browser
+const cookieParser = require('cookie-parser');
 
 const AppError = require('./utils/appError.js');
 const globalErrorHandler = require('./controllers/errorController.js');
@@ -31,7 +33,40 @@ const viewRouter = require('./routes/viewRoutes');
 app.use(express.static(path.join(__dirname, 'public')));
 
 //Set security HTTP headers
-app.use(helmet());
+//app.use(helmet());
+// app.use(
+//   helmet.contentSecurityPolicy({
+//     directives: {
+//       defaultSrc: ["'self'", 'data:', 'blob:'],
+
+//       baseUri: ["'self'"],
+
+//       fontSrc: ["'self'", 'https:', 'data:'],
+
+//       scriptSrc: ["'self'", 'https://*.cloudflare.com'],
+
+//       scriptSrc: ["'self'", 'https://*.stripe.com'],
+
+//       scriptSrc: ["'self'", 'http:', 'https://*.mapbox.com', 'data:'],
+
+//       frameSrc: ["'self'", 'https://*.stripe.com'],
+
+//       objectSrc: ["'none'"],
+
+//       //styleSrc: ["'self'", 'https:', 'unsafe-inline'],
+
+//       workerSrc: ["'self'", 'data:', 'blob:'],
+
+//       childSrc: ["'self'", 'blob:'],
+
+//       imgSrc: ["'self'", 'data:', 'blob:'],
+
+//       connectSrc: ["'self'", 'blob:', 'https://*.mapbox.com'],
+
+//       upgradeInsecureRequests: [],
+//     },
+//   }),
+// );
 
 //Development logging
 if (process.env.NODE_ENV === 'development') {
@@ -49,6 +84,7 @@ app.use('/api', limiter);
 
 //Body parser: it reads data from body into req.body
 app.use(express.json({ limit: '10kb' }));
+app.use(cookieParser());
 
 //Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
@@ -72,6 +108,7 @@ app.use(
 
 app.use((req, res, next) => {
   console.log('Custom Middleware');
+  console.log(req.cookies);
   next();
 });
 /*
