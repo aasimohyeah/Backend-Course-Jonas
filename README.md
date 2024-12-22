@@ -3,4 +3,4 @@ Fat model thin controller philosophy: Model should have as much business logic a
 findByIdAndUpdate causes middleware to not run  
 ctrl+shift+P in VS code for pug beautify  
 test1234 default  
-mapbox related stuff in: tour.pug  
+mapbox related stuff commented out in: tour.pug  
