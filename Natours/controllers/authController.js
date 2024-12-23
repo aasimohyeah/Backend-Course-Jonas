@@ -74,6 +74,14 @@ exports.login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout-Dummytext', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   //1. Getting token and check if it exists
   let token;
@@ -126,36 +134,40 @@ exports.protect = catchAsync(async (req, res, next) => {
 });
 
 // Only for rendered pages, no errors
-exports.isLoggedIn = catchAsync(async (req, res, next) => {
+exports.isLoggedIn = async (req, res, next) => {
   //To read token from authorization Header
   if (req.cookies.jwt) {
-    //1. Verify Token
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET,
-    );
+    try {
+      //1. Verify Token
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
 
-    //2. Check if user still exists
-    const currentUser = await User.findById(decoded.id);
-    if (!currentUser) {
+      //2. Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) {
+        return next();
+      }
+
+      //3. Check if user changed password after JWT token was issued
+      //'iat' means issued at
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      //-Code coming till here means There is a logged in user
+
+      //Every pug template has access to res.locals, user is a variable inside it
+      res.locals.user = currentUser; //A variable named user will be accesible in pug templates
       return next();
+    } catch (err) {
+      return next(); //goes to NO logged in user middleware
     }
-
-    //3. Check if user changed password after JWT token was issued
-    //'iat' means issued at
-    if (currentUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-
-    //-Code coming till here means There is a logged in user
-
-    //Every pug template has access to res.locals, user is a variable inside it
-    res.locals.user = currentUser; //A variable named user will be accesible in pug templates
-    return next();
   }
   //-Code coming till here means There is NO logged in user
   next();
-});
+};
 
 //(...roles) creates an array of data contained in roles variable
 exports.restrictTo =
